@@ -1,43 +1,55 @@
-# 宏观事件与跨市场预测研究
+# Macro Events & Cross-Market Forecasting
 
-同样是央行加息 25 个基点，市场早已预期加息和原本预期利率不变，是两种不同的消息。同样是油价上涨，需求增加和供应中断也可能给股市带来不同影响。这个项目研究一个问题：只使用预测时已经公开的信息，能否判断哪些传导路径更可能起作用，并改善对后续结果的概率预测？
+**English** · [简体中文](README.zh-CN.md)
 
-## 两类预测问题
+A widely expected rate hike and a surprise hike can have the same headline. An oil rally can signal stronger demand or a disruption in supply. **Can a forecast tell these stories apart using only what was known at the time?**
 
-| 问题 | 怎样比较 |
+We are building a research benchmark to test that question across rates, currencies, energy, gold and equity indices. Our aim is to trace a forecast back to the public release that informed it, the mechanism it assumes and the market outcome that could prove it wrong.
+
+[Research workflow](#research-workflow) · [Evidence so far](#evidence-so-far) · [Try the example](#try-the-example) · [Research agenda](#research-agenda)
+
+## Research workflow
+
+![A labor-market factor goes from a fixed question and dated evidence to a statistical model and a separate Qwen forecast.](assets/workflow-en.png)
+
+In the November 2 labor-market experiment, the agent read a 2012 speech by Ben Bernanke and historical labor data. It proposed using the quarterly change in the labor force when payroll employment was above its trailing twelve-quarter average, and zero otherwise. A fixed program computed the feature. Logistic regression received an extra column. In a separate forecasting context, Qwen received the formula and its computed value.
+
+That distinction mattered. An incorrect unit description reached the Qwen prompt. Logistic regression consumed the numeric column, and all 644 saved probabilities could be reproduced from its coefficients. The original Qwen forecasts still reflect the wording it saw.
+
+## Evidence so far
+
+| Research question | What we have checked |
 | --- | --- |
-| 事件发生前，某个明确结果的概率是多少？ | 逐题核对 Polymarket 原始结算规则。题目、截止时间和结算口径匹配时，将模型概率与当时的市场概率比较。 |
-| 事件发生后，或某个过程仍在持续时，资产接下来如何变化？ | 为利率、汇率、能源、黄金及美日韩中股指分别定义工具、单位和观测窗口。即使没有对应的预测市场，也保留资产问题。 |
+| Can we match a forecast to a prediction market? | We reviewed the original rules of **30 Polymarket markets** and retrieved nonempty historical probability samples for **23**. Matching an individual forecast still requires the same question, cutoff and settlement rule. |
+| Did the labor factor improve forecasts? | For the probability of a monthly rise in U.S. unemployment, adding the factor moved the Brier score from **0.2398 to 0.2351** on validation and from **0.1950 to 0.2029** on historical replay. Lower is better. |
+| Can we catch a plausible-looking leak? | In a separate November 4 experiment, Qwen3-8B received **275 monthly observations**. Its proposed formula used unemployment in the very quarter being forecast. The check stopped the run before fitting. [Read the case](docs/cases.en.md) |
+| What can we assess prospectively? | As of November 7, 2026, **3 of 6** frozen questions have verified outcomes. The full set awaits scoring. |
 
-研究以周、月和具体事件为主要周期。项目仅用于科研与模拟，永久 `NO_ORDER`。
+![The 2000–2019 model-fitting period contains two factor-development windows. Validation and replay follow on later historical dates.](assets/time-splits-en.png)
 
-## 一个可以自己核对的问题
+The validation and replay scores use 35 and 44 scorable forecast dates, respectively. Both belong to a historical experiment. Early missing windows and uncertainty about when some inputs became available still limit what these results tell us about future forecasts.
 
-假设要在 **2023 年 1 月 15 日**研究当月美国失业率。上年 12 月的初值 3.5% 已于 1 月 6 日发布，当年 1 月的初值 3.4% 到 2 月 3 日才发布。今天下载数据时两条记录都看得到，预测当天能够使用的只有前一条。示例用这两个日期演示如何检查数据版本的可用时间。[案例与来源](docs/cases.md)
+## Try the example
 
-使用 Python 3.11，在仓库根目录运行。示例仅依赖标准库，可离线运行。
+On January 15, 2023, which U.S. unemployment figure could a forecaster use? From the repository root, run this offline example with Python 3.11. It uses only the standard library.
 
 ```shell
 python examples/release_cutoff.py
 ```
-
-预期输出为：
 
 ```text
 2022-12  3.5%  BEFORE_CUTOFF
 2023-01  3.4%  AFTER_CUTOFF
 ```
 
-## 研究进度
+The reference month tells you what the observation describes. Its release date tells you when it could enter the forecast. [Case notes and ALFRED source](docs/cases.en.md)
 
-截至 2026 年 11 月 7 日，已获得以下阶段性结果。
+## Research agenda
 
-| 工作 | 已观察到什么 | 仍待解决 |
-| --- | --- | --- |
-| 预测市场盘点 | 核对 30 个市场的原始规则，其中 23 个取得非空历史概率样例。 | 要逐题确认历史概率是否覆盖预测截点，及其与原题能否配对。 |
-| 历史模型比较 | 已在政策和能源的历史开发样本上运行逻辑回归、小型 MLP 和浅层 CatBoost。 | 后续需要未见样本评估。能源评价只涉及 3 个独立过程，同一过程内多个窗口彼此相关。 |
-| Agent 因子实验 | 一次 Qwen3-8B 调用收到了 275 个月的失业率记录。候选公式依赖待预测季度的失业率，时间检查将其拒绝。 | 该轮止于候选检查，拟合、数值反馈和预测均未执行。[失败案例](docs/cases.md#失业率因子为什么被拒绝) |
-| 前瞻标签核验 | 6 道冻结题中，欧洲央行、加拿大央行和美国 GDP 的 3 道题已核实标签。 | 美国天然气库存、Brent 现货和美国两年期国债收益率 3 题仍待核验，本批尚未评分。 |
-| 数据与作者资料 | 已对部分宏观记录核对历史版本，并追溯部分作者材料的原始出处。 | 跨市场数据的历史可用时间，以及作者观点的连续记录、更新和反证仍待补齐。 |
+| Direction | What we want to learn |
+| --- | --- |
+| **Before an event** | Can an agent assign better-calibrated probabilities to policy decisions and macro releases than a historical baseline or a crowd pricing the same contract? We want to freeze the forecast and the comparison price before the answer is public. |
+| **Across markets** | When policy or supply conditions change, which assets react, in which direction and for how long? We aim to follow the same event over weekly, monthly and event-specific horizons, including assets with no corresponding prediction market. |
+| **Mechanisms under test** | We want to turn competing explanations from official texts and dated analyst commentary into testable claims. Given the same information, does a suggested mechanism add predictive value beyond a simple model? Tracking revisions and counterexamples is part of that test. |
 
-首版公开材料包含上述研究摘要、案例和教学示例。完整数据、模型运行环境及端到端复现包尚未发布。项目尚无经前瞻评估证实的整体预测优势。
+The public repository contains worked cases, diagrams and a runnable example. A broader point-in-time dataset and a prospective comparison across markets remain research goals. Research and simulation only (`NO_ORDER`).
