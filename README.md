@@ -2,54 +2,32 @@
 
 **English** · [简体中文](README.zh-CN.md)
 
-A widely expected rate hike and a surprise hike can have the same headline. An oil rally can signal stronger demand or a disruption in supply. **Can a forecast tell these stories apart using only what was known at the time?**
+When oil prices rise, stronger demand and disrupted supply can both explain the headline. They can imply quite different things for an importing country's equities and bond yields. **At the moment the news breaks, what evidence could distinguish those explanations? What would change our view?**
 
-We are building a research benchmark to test that question across rates, currencies, energy, gold and equity indices. Our aim is to trace a forecast back to the public release that informed it, the mechanism it assumes and the market outcome that could prove it wrong.
+Our aim is to connect what markets expected before a macro event, what a forecaster could know at the time, and what can be checked afterward. We study two questions: how likely an event is, and how its effects might travel across markets once it happens or while it unfolds.
 
-[Research workflow](#research-workflow) · [Evidence so far](#evidence-so-far) · [Try the example](#try-the-example) · [Research agenda](#research-agenda)
+[Research framework](#research-framework) · [Research agenda](#research-agenda) · [Evaluation design](#evaluation-design)
 
-## Research workflow
+## Research framework
 
-![A labor-market factor goes from a fixed question and dated evidence to a statistical model and a separate Qwen forecast.](assets/workflow-en.png)
+![Public information, market expectations and economic conditions support competing hypotheses about event probabilities and cross-market responses.](assets/workflow-en.png)
 
-In the November 2 labor-market experiment, the agent read a 2012 speech by Ben Bernanke and historical labor data. It proposed using the quarterly change in the labor force when payroll employment was above its trailing twelve-quarter average, and zero otherwise. A fixed program computed the feature. Logistic regression received an extra column. In a separate forecasting context, Qwen received the formula and its computed value.
+Consider a central bank meeting. Before the announcement, a researcher can estimate the probability of a policy change and record the probability on a matching prediction market, if one exists. Once the decision and its wording become public, a different question opens up. Where might the surprise show up first: in yields, exchange rates or equity indices? Each question has its own information cutoff, forecast horizon and outcome rule.
 
-That distinction mattered. An incorrect unit description reached the Qwen prompt. Logistic regression consumed the numeric column, and all 644 saved probabilities could be reproduced from its coefficients. The original Qwen forecasts still reflect the wording it saw.
-
-## Evidence so far
-
-| Research question | What we have checked |
-| --- | --- |
-| Can we match a forecast to a prediction market? | We reviewed the original rules of **30 Polymarket markets** and retrieved nonempty historical probability samples for **23**. Matching an individual forecast still requires the same question, cutoff and settlement rule. |
-| Did the labor factor improve forecasts? | For the probability of a monthly rise in U.S. unemployment, adding the factor moved the Brier score from **0.2398 to 0.2351** on validation and from **0.1950 to 0.2029** on historical replay. Lower is better. |
-| Can we catch a plausible-looking leak? | In a separate November 4 experiment, Qwen3-8B received **275 monthly observations**. Its proposed formula used unemployment in the very quarter being forecast. The check stopped the run before fitting. [Read the case](docs/cases.en.md) |
-| What can we assess prospectively? | As of November 7, 2026, **3 of 6** frozen questions have verified outcomes. The full set awaits scoring. |
-
-![The 2000–2019 model-fitting period contains two factor-development windows. Validation and replay follow on later historical dates.](assets/time-splits-en.png)
-
-The validation and replay scores use 35 and 44 scorable forecast dates, respectively. Both belong to a historical experiment. Early missing windows and uncertainty about when some inputs became available still limit what these results tell us about future forecasts.
-
-## Try the example
-
-On January 15, 2023, which U.S. unemployment figure could a forecaster use? From the repository root, run this offline example with Python 3.11. It uses only the standard library.
-
-```shell
-python examples/release_cutoff.py
-```
-
-```text
-2022-12  3.5%  BEFORE_CUTOFF
-2023-01  3.4%  AFTER_CUTOFF
-```
-
-The reference month tells you what the observation describes. Its release date tells you when it could enter the forecast. [Case notes and ALFRED source](docs/cases.en.md)
+In this design, a research agent proposes hypotheses that could be disproved. Each one should identify the facts it relies on, the conditions under which it applies and the evidence that would weaken it. Several explanations may fit the same release. Sometimes the evidence warrants leaving the question open.
 
 ## Research agenda
 
-| Direction | What we want to learn |
-| --- | --- |
-| **Before an event** | Can an agent assign better-calibrated probabilities to policy decisions and macro releases than a historical baseline or a crowd pricing the same contract? We want to freeze the forecast and the comparison price before the answer is public. |
-| **Across markets** | When policy or supply conditions change, which assets react, in which direction and for how long? We aim to follow the same event over weekly, monthly and event-specific horizons, including assets with no corresponding prediction market. |
-| **Mechanisms under test** | We want to turn competing explanations from official texts and dated analyst commentary into testable claims. Given the same information, does a suggested mechanism add predictive value beyond a simple model? Tracking revisions and counterexamples is part of that test. |
+**How much of the news was already expected?** We want to pair what markets anticipated with what was eventually announced. For events with a matching prediction market, we can compare probabilities on the same question, at the same cutoff and under the same settlement terms. Across many such forecasts, when does the agent pick up information the price has yet to reflect, and when does the market make the better call?
 
-The public repository contains worked cases, diagrams and a runnable example. A broader point-in-time dataset and a prospective comparison across markets remain research goals. Research and simulation only (`NO_ORDER`).
+**Where does a shock travel, and how long does it last?** We aim to follow the same event across energy, rates, currencies, gold and equity indices in the US, Japan, South Korea and China. A supply disruption might move crude prices first, then import costs and inflation expectations. Weekly, monthly and event-specific observations would let us check which links appeared, in what order, and where the evidence runs out. An asset can be studied even when there is no corresponding prediction-market contract.
+
+**Can an explanation survive the next event?** We want to translate official releases and analysts’ contemporaneous views into traceable hypotheses, preserving revisions, retractions and counterexamples. With the same information available to each method, we can test whether reasoning through a proposed mechanism adds anything to a direct forecast. Over time, we hope to build a cross-market case archive where a reader can recover what was known, inspect the competing explanations and see which one the outcome favored.
+
+## Evaluation design
+
+![One possible sequence uses earlier observations for training or development, later observations for validation, and new events for forecasts recorded before outcomes are known.](assets/time-splits-en.png)
+
+One possible design uses an earlier period to develop hypotheses or train a method, a later period to compare candidates, and fresh events to record forecasts under fixed rules. Window lengths depend on event frequency, publication timing and the forecast horizon. Once an outcome can be resolved under the original rule, the recorded forecast can be compared with a baseline chosen in advance.
+
+The framework is under development. Our [research notes](docs/cases.en.md) document selected experiments, data-availability checks and rejected candidates. This project is for research and simulation only (`NO_ORDER`).

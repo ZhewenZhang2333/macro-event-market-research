@@ -20,3 +20,5 @@ A separate experiment supplied Qwen3-8B with 275 monthly U.S. unemployment obser
 The rule for forecasting quarter Q required every input to come from an earlier quarter. Knowing Q−2 was insufficient to compute the formula because Q itself was still unknown. The candidate also lacked the required citations to individual monthly observations. The run stopped at the candidate check, before statistical fitting, feedback or forecasts.
 
 The first case checks when a data point could be read. The second checks when a *calculation* could have been made. [Back to the project](../README.md)
+
+For the labor-factor experiment, its validation and replay scores, and their limitations, see the [historical experiment notes](https://github.com/ZhewenZhang2333/macro-event-market-research/blob/471f80be9f085fe8c72981a472c254b88630b380/README.md).
